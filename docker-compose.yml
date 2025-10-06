@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  email-verifier:
+    build: .
+    container_name: email-verifier
+    ports:
+      - "5050:5050"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    volumes:
+      # Optional: Mount volume for logs or temp files
+      - ./logs:/app/logs
+    networks:
+      - email-verifier-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5050/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  email-verifier-network:
+    driver: bridge

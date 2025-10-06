@@ -78,21 +78,83 @@ def discover_subdomains_from_ct_logs(domain, timeout=5):
         
         if response.status_code == 200:
             certs = response.json()
+            print(f"   📊 CT API returned {len(certs)} certificates")
             
+            all_names = []
             for cert in certs:
                 name_value = cert.get('name_value', '')
                 # Split by newlines (crt.sh returns multiple names per cert)
                 names = name_value.split('\n')
-                
-                for name in names:
-                    name = name.strip().lower()
-                    # Skip wildcards and the base domain
-                    if name and '*' not in name and name != domain:
-                        # Only keep subdomains of our target domain
-                        if name.endswith(f'.{domain}'):
-                            subdomains.add(name)
+                all_names.extend([n.strip().lower() for n in names if n.strip()])
             
-            print(f"   ✅ Found {len(subdomains)} subdomains from CT logs")
+            print(f"   📝 Raw names from certificates: {len(all_names)} total")
+            
+            # Log first few for debugging
+            if all_names:
+                sample = list(set(all_names))[:10]
+                print(f"   🔍 Sample names: {', '.join(sample)}")
+            
+            # Filter and process
+            for name in all_names:
+                # Skip wildcards and the base domain
+                if name and '*' not in name and name != domain:
+                    if name.endswith(f'.{domain}'):
+                        # Email service provider routing prefixes (common patterns)
+                        # These indicate email infrastructure, the actual subdomain comes after
+                        email_routing_prefixes = [
+                            'email.',      # Mailgun, SendGrid, general
+                            'mail.',       # General email routing
+                            'bounce.',     # Amazon SES, bounce handling
+                            'em.',         # SendGrid shorthand
+                            'pm-bounce.',  # Postmark
+                            'news.',       # Marketing emails
+                            'marketing.',  # Marketing segmentation
+                            'promo.',      # Promotional emails
+                            'offers.',     # Offer emails
+                            'notifications.', # Transactional
+                            'support.',    # Support emails
+                            'help.',       # Help desk emails
+                            'tickets.',    # Ticketing systems
+                            'fbl.',        # Feedback loop
+                            'feedback.',   # Feedback handling
+                        ]
+                        
+                        # Check if this is an email routing subdomain
+                        extracted = False
+                        for prefix in email_routing_prefixes:
+                            if name.startswith(prefix):
+                                # Extract the real subdomain
+                                actual_subdomain = name[len(prefix):]
+                                if actual_subdomain and actual_subdomain.endswith(f'.{domain}'):
+                                    subdomains.add(actual_subdomain)
+                                    print(f"   📧 Extracted email subdomain: {actual_subdomain} (from {name} via '{prefix}' prefix)")
+                                    extracted = True
+                                    break
+                        
+                        if extracted:
+                            continue  # Already processed, skip to next
+                        else:
+                            # Regular subdomain - only accept 1st level (rs.fusionsync.ai, not app.rs.fusionsync.ai)
+                            domain_parts = domain.split('.')
+                            name_parts = name.split('.')
+                            
+                            # We want only one level deeper than base domain
+                            if len(name_parts) == len(domain_parts) + 1:
+                                # Skip common non-email subdomains
+                                subdomain_prefix = name_parts[0]
+                                non_email_prefixes = {'www', 'app', 'api', 'dev', 'staging', 'test', 'admin', 'dashboard', 'n8n', 'nocodb', 'brand', 'recallsync'}
+                                
+                                if subdomain_prefix not in non_email_prefixes:
+                                    subdomains.add(name)
+                                    print(f"   ✅ Added: {name} (potential email subdomain)")
+                                else:
+                                    print(f"   ⏭️  Skipped: {name} (non-email subdomain)")
+                            else:
+                                print(f"   ⏭️  Skipped: {name} (deeper level subdomain)")
+            
+            print(f"   ✅ Final filtered subdomains: {len(subdomains)}")
+            if subdomains:
+                print(f"   📋 Discovered: {', '.join(sorted(subdomains))}")
         else:
             print(f"   ⚠️  CT logs query failed (HTTP {response.status_code})")
     
@@ -118,19 +180,15 @@ def discover_email_subdomains(domain):
     
     print(f"\n🔍 Discovering email subdomains for: {domain}")
     
-    # Step 1: Try Certificate Transparency logs first
+    # Discover subdomains using Certificate Transparency logs only (no hardcoding)
     ct_subdomains = discover_subdomains_from_ct_logs(domain)
     
-    # Step 2: Fallback to common patterns if CT fails
-    if not ct_subdomains:
-        print(f"   📋 Using common subdomain patterns as fallback...")
-        ct_subdomains = [
-            f'{s}.{domain}' for s in ['mail', 'smtp', 'send', 'rs', 'mx', 'email', 'webmail']
-        ]
+    if ct_subdomains:
+        print(f"   📋 Checking {len(ct_subdomains)} discovered subdomains for MX records...")
+    else:
+        print(f"   ⚠️  No subdomains found from CT logs, will only check base domain")
     
-    # Step 3: Check which discovered subdomains have MX records
-    print(f"   🔍 Checking {len(ct_subdomains)} subdomains for MX records...")
-    
+    # Check which discovered subdomains have MX records
     for subdomain_fqdn in ct_subdomains:
         try:
             records = dns.resolver.resolve(subdomain_fqdn, 'MX')

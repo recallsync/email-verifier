@@ -36,7 +36,7 @@ source venv/bin/activate  # macOS/Linux
 venv\Scripts\activate  # Windows
 
 # Install dependencies
-pip install flask flask-cors dnspython
+pip install -r requirements.txt
 ```
 
 ## 🏃 Quick Start
@@ -282,3 +282,28 @@ Use freely for your projects!
 ---
 
 **🔥 Built with best practices from industry research on email verification, greylisting, and SMTP validation.**
+
+---
+The hosted server have limits based on VPS IP so not ideal to use the hosted api 
+
+instead its more suited to local - either repository clone or a desktop app 
+
+
+Testing: 
+
+LOCAL
+Host: http://127.0.0.1:5050
+Endpoint: http://127.0.0.1:5050/verify-email
+python scripts/parallel_verify_email.py --url http://127.0.0.1:5050/verify-email --workers 50 --requests 300
+
+Run NGROK Server Pointed to 5050 (app is running here by default) - run in terminal
+`npx ngrok http --domain=deservedly-underaccommodated-maryrose.ngrok-free.dev 5050`
+This will route the requests from ngrok domain to localhost (PORT 5050)
+
+NGROK
+Host: https://deservedly-underaccommodated-maryrose.ngrok-free.dev
+Endpoint: http://127.0.0.1:5050/verify-email
+python scripts/parallel_verify_email.py --url https://deservedly-underaccommodated-maryrose.ngrok-free.dev/verify-email --workers 50 --requests 100
+
+
+

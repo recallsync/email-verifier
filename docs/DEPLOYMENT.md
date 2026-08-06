@@ -5,8 +5,8 @@
 ```bash
 mkdir email-verifier && cd email-verifier
 
-curl -fsSL -O https://raw.githubusercontent.com/envisiontechai/email-verifier/main/deploy/docker-compose.yml
-curl -fsSL -O https://raw.githubusercontent.com/envisiontechai/email-verifier/main/deploy/.env.example
+curl -fsSL -O https://raw.githubusercontent.com/recallsync/email-verifier/main/deploy/docker-compose.yml
+curl -fsSL -O https://raw.githubusercontent.com/recallsync/email-verifier/main/deploy/.env.example
 cp .env.example .env
 # Edit .env — set POSTGRES_PASSWORD
 
@@ -23,7 +23,7 @@ Images: `envisiontechai/fusionsyncai-email-verifier:latest` (app) and `:postgres
 ## Quick start (from source)
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/recallsync/email-verifier.git
 cd email-verifier
 cp .env.example .env
 docker compose up -d --build

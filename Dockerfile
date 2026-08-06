@@ -11,7 +11,7 @@ FROM python:3.13-slim-bookworm
 
 LABEL org.opencontainers.image.title="FusionSync Email Verifier"
 LABEL org.opencontainers.image.description="Local-first email list verification with web UI"
-LABEL org.opencontainers.image.source="https://github.com/envisiontechai/email-verifier"
+LABEL org.opencontainers.image.source="https://github.com/recallsync/email-verifier"
 LABEL org.opencontainers.image.vendor="EnvisionTech AI"
 
 WORKDIR /app

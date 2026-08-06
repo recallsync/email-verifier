@@ -27,8 +27,8 @@ Local-first email list verification. Upload CSV/XLSX, verify via SMTP on your ma
 ```bash
 mkdir email-verifier && cd email-verifier
 
-curl -fsSL -O https://raw.githubusercontent.com/envisiontechai/email-verifier/main/deploy/docker-compose.yml
-curl -fsSL -O https://raw.githubusercontent.com/envisiontechai/email-verifier/main/deploy/.env.example
+curl -fsSL -O https://raw.githubusercontent.com/recallsync/email-verifier/main/deploy/docker-compose.yml
+curl -fsSL -O https://raw.githubusercontent.com/recallsync/email-verifier/main/deploy/.env.example
 cp .env.example .env
 # Edit .env — set POSTGRES_PASSWORD
 
@@ -53,7 +53,7 @@ Open **http://localhost:5050**
 
 ### Links
 
-- GitHub: https://github.com/envisiontechai/email-verifier
+- GitHub: https://github.com/recallsync/email-verifier
 - Documentation: `/docs` in repository
 
 ---

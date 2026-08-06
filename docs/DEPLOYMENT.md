@@ -9,12 +9,12 @@ curl -fsSL https://raw.githubusercontent.com/recallsync/email-verifier/main/inst
 The script will:
 1. Check Docker and Compose v2
 2. Create an install directory (default `./email-verifier`)
-3. Download compose files from GitHub
+3. Download compose files and local docs (`README.md`, `INSTRUCTIONS.md`) from GitHub
 4. Prompt for PostgreSQL password (Enter = random, with fallbacks if `openssl` is unavailable)
 5. Optionally configure ngrok (authtoken + reserved domain)
 6. Pull images and start the stack
 
-Open **http://localhost:5050**.
+Open **http://localhost:5050**. See `INSTRUCTIONS.md` in the install directory for daily commands (`docker compose down`, updates, wiping data, etc.).
 
 ---
 

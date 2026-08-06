@@ -16,6 +16,8 @@ curl -fsSL https://raw.githubusercontent.com/recallsync/email-verifier/main/inst
 
 Open **http://localhost:5050**
 
+The installer saves `README.md` and `INSTRUCTIONS.md` in your install folder (start/stop, backups, `docker compose down`, etc.).
+
 ---
 
 ## Quick start (manual)

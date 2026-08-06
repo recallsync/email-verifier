@@ -31,6 +31,13 @@ export function NewListPage() {
   const [error, setError] = useState<string | null>(null);
 
   const handleFile = (f: File | null) => {
+    if (f) {
+      const lower = f.name.toLowerCase();
+      if (!lower.endsWith(".csv") && !lower.endsWith(".xlsx") && !lower.endsWith(".xlsm")) {
+        setError("Please upload a CSV or XLSX file.");
+        return;
+      }
+    }
     setFile(f);
     setUploadResult(null);
     setAmbiguousColumns(null);
@@ -92,7 +99,7 @@ export function NewListPage() {
       <Card>
         <CardHeader>
           <CardTitle>List details</CardTitle>
-          <CardDescription>Name your list and upload a CSV file.</CardDescription>
+          <CardDescription>Name your list and upload a CSV or Excel (.xlsx) file.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -115,10 +122,10 @@ export function NewListPage() {
             }}
           >
             <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Drag and drop CSV, or click to browse</p>
+            <p className="text-sm text-muted-foreground">Drag and drop CSV or XLSX, or click to browse</p>
             <Input
               type="file"
-              accept=".csv"
+              accept=".csv,.xlsx,.xlsm"
               className="mt-4 max-w-xs"
               onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
             />

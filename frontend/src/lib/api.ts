@@ -167,8 +167,11 @@ export const api = {
     );
   },
 
-  exportUrl: (id: string, filter: "all" | "risky_failed" = "all") =>
-    `/api/lists/${id}/export?filter=${filter}`,
+  exportUrl: (
+    id: string,
+    filter: "all" | "risky_failed" = "all",
+    format: "csv" | "xlsx" = "csv"
+  ) => `/api/lists/${id}/export?filter=${filter}&format=${format}`,
 
   verifyEmail: (email: string) =>
     request<{ email: string; status: string; reason: string; message: string }>(

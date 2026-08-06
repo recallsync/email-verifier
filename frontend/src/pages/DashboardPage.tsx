@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Trash2, Download, Play } from "lucide-react";
+import { Plus, Trash2, Download, Play, FileSpreadsheet } from "lucide-react";
 import { api, type List } from "@/lib/api";
 import { formatNumber, formatRelativeDate, statusLabel } from "@/lib/utils";
 import { Badge, listStatusBadgeVariant } from "@/components/ui/badge";
@@ -159,11 +159,18 @@ export function DashboardPage() {
                             </Button>
                           )}
                           {list.processed_rows > 0 && (
-                            <Button asChild variant="ghost" size="icon" title="Export">
-                              <a href={api.exportUrl(list.id)} download>
-                                <Download className="h-4 w-4" />
-                              </a>
-                            </Button>
+                            <>
+                              <Button asChild variant="ghost" size="icon" title="Export CSV">
+                                <a href={api.exportUrl(list.id, "all", "csv")} download>
+                                  <Download className="h-4 w-4" />
+                                </a>
+                              </Button>
+                              <Button asChild variant="ghost" size="icon" title="Export XLSX">
+                                <a href={api.exportUrl(list.id, "all", "xlsx")} download>
+                                  <FileSpreadsheet className="h-4 w-4" />
+                                </a>
+                              </Button>
+                            </>
                           )}
                           {list.status !== "processing" && (
                             <Button

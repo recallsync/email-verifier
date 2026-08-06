@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Download, Pause, Play, XCircle } from "lucide-react";
+import { ArrowLeft, Download, Pause, Play, XCircle, FileSpreadsheet } from "lucide-react";
 import { api, subscribeProgress, type List, type ListRow, type ProgressEvent } from "@/lib/api";
 import { formatNumber, statusLabel } from "@/lib/utils";
 import { Badge, listStatusBadgeVariant, rowStatusBadgeVariant } from "@/components/ui/badge";
@@ -142,20 +142,34 @@ export function ListDetailPage() {
       )}
 
       {list.processed_rows > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline">
-            <a href={api.exportUrl(id, "all")} download>
-              <Download className="h-4 w-4" /> Download Full CSV
-            </a>
-          </Button>
-          <Button asChild variant="outline">
-            <a href={api.exportUrl(id, "risky_failed")} download>
-              <Download className="h-4 w-4" /> Export Risky + Failed
-            </a>
-          </Button>
-          <span className="self-center text-xs text-muted-foreground">
-            {list.risky_count + list.failed_count} rows in risky/failed export
-          </span>
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" size="sm">
+              <a href={api.exportUrl(id, "all", "csv")} download>
+                <Download className="h-4 w-4" /> Full CSV
+              </a>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <a href={api.exportUrl(id, "all", "xlsx")} download>
+                <FileSpreadsheet className="h-4 w-4" /> Full XLSX
+              </a>
+            </Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button asChild variant="outline" size="sm">
+              <a href={api.exportUrl(id, "risky_failed", "csv")} download>
+                <Download className="h-4 w-4" /> Risky + Failed CSV
+              </a>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <a href={api.exportUrl(id, "risky_failed", "xlsx")} download>
+                <FileSpreadsheet className="h-4 w-4" /> Risky + Failed XLSX
+              </a>
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              {list.risky_count + list.failed_count} rows in risky/failed export
+            </span>
+          </div>
         </div>
       )}
 

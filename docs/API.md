@@ -182,13 +182,13 @@ Delete a list and all its rows. Allowed for any status except `processing`.
 
 ### `POST /api/lists/:id/upload`
 
-Upload CSV file. Multipart form data.
+Upload CSV or XLSX file. Multipart form data.
 
 **Form fields:**
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `file` | file | yes | CSV file |
+| `file` | file | yes | `.csv` or `.xlsx` file |
 | `email_column` | string | no | Column name override. Auto-detected if omitted. |
 
 **Auto-detection:** looks for column named `email` (case-insensitive). If multiple candidates or none found, returns 422 with detected columns for user selection.
@@ -313,10 +313,11 @@ Download CSV export.
 | Param | Values | Description |
 |---|---|---|
 | `filter` | `all` (default), `risky_failed` | Which rows to include |
+| `format` | `csv` (default), `xlsx` | Export file format |
 
-**Response 200:** `text/csv` stream.
+**Response 200:** file download stream (`text/csv` or XLSX MIME type).
 
-Columns: all original CSV columns + `V Status` + `V Reason`.
+Columns: all original columns + `V Status` + `V Reason`.
 
 Content-Disposition: `attachment; filename="{list_name}-verified.csv"`
 

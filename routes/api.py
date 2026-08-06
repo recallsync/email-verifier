@@ -10,8 +10,8 @@ from db.connection import get_connection
 from db import repository as repo
 from db.settings import get_all_settings, get_settings_snapshot, update_settings
 from db.stats import get_stats
-from services.csv_upload import UploadError, process_csv_upload
-from services.export import export_filename, generate_csv
+from services.list_upload import UploadError, process_list_upload
+from services.export import build_xlsx, export_filename, generate_csv
 from utils.serializers import serialize_list
 
 api = Blueprint("api", __name__, url_prefix="/api")
@@ -122,13 +122,13 @@ def upload_csv(list_id):
         return _error("invalid_id", "Invalid list ID", 400)
 
     if "file" not in request.files:
-        return _error("missing_file", "CSV file is required", 400)
+        return _error("missing_file", "CSV or XLSX file is required", 400)
 
     file_storage = request.files["file"]
     email_column = request.form.get("email_column") or None
 
     try:
-        result = process_csv_upload(uid, file_storage, email_column)
+        result = process_list_upload(uid, file_storage, email_column)
         return jsonify(result)
     except UploadError as exc:
         status = 413 if exc.code == "file_too_large" else 422
@@ -252,6 +252,10 @@ def export_list(list_id):
     if filter_type not in ("all", "risky_failed"):
         return _error("invalid_filter", "filter must be 'all' or 'risky_failed'", 400)
 
+    file_format = request.args.get("format", "csv").lower()
+    if file_format not in ("csv", "xlsx"):
+        return _error("invalid_format", "format must be 'csv' or 'xlsx'", 400)
+
     with get_connection() as conn:
         with conn.cursor() as cur:
             lst = repo.get_list(cur, uid)
@@ -259,7 +263,16 @@ def export_list(list_id):
     if not lst:
         return _error("not_found", "List not found", 404)
 
-    filename = export_filename(lst["name"], filter_type)
+    filename = export_filename(lst["name"], filter_type, file_format)
+
+    if file_format == "xlsx":
+        data = build_xlsx(uid, filter_type)
+        return Response(
+            data,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+
     return Response(
         stream_with_context(generate_csv(uid, filter_type)),
         mimetype="text/csv",

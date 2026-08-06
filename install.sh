@@ -3,32 +3,42 @@
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/recallsync/email-verifier/main/install.sh | bash
-#   curl -fsSL .../install.sh -o install.sh && chmod +x install.sh && ./install.sh
+#   curl -fsSL .../install.sh -o install.sh && bash install.sh
 #
 # Requires: Docker Compose v2, curl or wget
 
 set -euo pipefail
 
 REPO_RAW="https://raw.githubusercontent.com/recallsync/email-verifier/main/deploy"
+INSTALL_SCRIPT_RAW="https://raw.githubusercontent.com/recallsync/email-verifier/main/install.sh"
 DEFAULT_DIR="email-verifier"
-HEALTH_URL="http://localhost:5050/health"
 HEALTH_TIMEOUT=120
+TTY_DEVICE="/dev/tty"
 
 err() { printf 'Error: %s\n' "$*" >&2; }
 info() { printf '%s\n' "$*"; }
 
-# curl | bash pipes the script on stdin — redirect prompts to the terminal.
-open_tty() {
-  if [[ -t 0 ]]; then
-    return 0
+# curl | bash feeds the script on stdin — read prompts from the terminal explicitly.
+prompt() {
+  local __var=$1
+  local __msg=$2
+  local __secret=${3:-0}
+  local __val=""
+
+  if [[ ! -r "$TTY_DEVICE" ]]; then
+    err "Interactive installer requires a terminal ($TTY_DEVICE)."
+    err "Try: curl -fsSL ${INSTALL_SCRIPT_RAW} -o install.sh && bash install.sh"
+    exit 1
   fi
-  if [[ -r /dev/tty ]]; then
-    exec 0</dev/tty
-    return 0
+
+  if [[ "$__secret" == "1" ]]; then
+    IFS= read -r -s -p "$__msg" __val <"$TTY_DEVICE" || true
+    printf '\n' >"$TTY_DEVICE"
+  else
+    IFS= read -r -p "$__msg" __val <"$TTY_DEVICE" || true
   fi
-  err "Interactive installer requires a terminal."
-  err "Try: curl -fsSL ${REPO_RAW%/deploy}/install.sh -o install.sh && bash install.sh"
-  exit 1
+
+  printf -v "$__var" '%s' "$__val"
 }
 
 download() {
@@ -160,11 +170,13 @@ main() {
   info "Email Verifier — installer"
   info ""
 
-  open_tty
+  info "Checking Docker..."
   check_prereqs
+  info "Docker OK."
+  info ""
 
   local install_dir=""
-  read -r -p "Install directory [./${DEFAULT_DIR}]: " install_dir
+  prompt install_dir "Install directory [./${DEFAULT_DIR}]: "
   install_dir="${install_dir:-./${DEFAULT_DIR}}"
   install_dir="${install_dir/#\~/$HOME}"
 
@@ -175,7 +187,8 @@ main() {
 
   local update_only=0
   if [[ -f .env && -f docker-compose.yml ]]; then
-    read -r -p "Existing install found. Update images only (keep .env)? [Y/n]: " ans
+    local ans=""
+    prompt ans "Existing install found. Update images only (keep .env)? [Y/n]: "
     if [[ ! "$ans" =~ ^[Nn]$ ]]; then
       update_only=1
     fi
@@ -204,14 +217,12 @@ main() {
   fi
 
   local pg_pass=""
-  read -r -s -p "PostgreSQL password (Enter for random): " pg_pass
-  echo ""
+  prompt pg_pass "PostgreSQL password (Enter for random): " 1
   if [[ -z "$pg_pass" ]]; then
     pg_pass=$(generate_password)
     if [[ -z "$pg_pass" ]]; then
       err "Could not generate a random password on this system."
-      read -r -s -p "Enter a PostgreSQL password manually: " pg_pass
-      echo ""
+      prompt pg_pass "Enter a PostgreSQL password manually: " 1
       [[ -z "$pg_pass" ]] && { err "Password cannot be empty."; exit 1; }
     fi
     GENERATED_PASSWORD=1
@@ -219,16 +230,16 @@ main() {
 
   ENABLE_NGROK=0
   local ngrok_token="" ngrok_domain="" public_url=""
-  read -r -p "Enable ngrok for external HTTPS access? [y/N]: " ngrok_ans
+  local ngrok_ans=""
+  prompt ngrok_ans "Enable ngrok for external HTTPS access? [y/N]: "
   if [[ "$ngrok_ans" =~ ^[Yy]$ ]]; then
     ENABLE_NGROK=1
-    read -r -s -p "NGROK authtoken (dashboard.ngrok.com/get-started/your-authtoken): " ngrok_token
-    echo ""
+    prompt ngrok_token "NGROK authtoken (dashboard.ngrok.com/get-started/your-authtoken): " 1
     if [[ -z "$ngrok_token" ]]; then
       err "NGROK_AUTHTOKEN is required when ngrok is enabled."
       exit 1
     fi
-    read -r -p "Reserved ngrok domain (dashboard.ngrok.com/domains, Enter to skip): " ngrok_domain
+    prompt ngrok_domain "Reserved ngrok domain (dashboard.ngrok.com/domains, Enter to skip): "
     if [[ -n "$ngrok_domain" ]]; then
       ngrok_domain=$(normalize_ngrok_domain "$ngrok_domain") || {
         err "Invalid ngrok domain."

@@ -6,7 +6,7 @@ services:
       - "5050:5050"
     environment:
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://verifier:${POSTGRES_PASSWORD}@postgres:5432/email_verifier
+      - DATABASE_URL=postgresql://verifier:${POSTGRES_PASSWORD:-changeme}@postgres:5432/email_verifier
       - DATA_DIR=/app/data
       - CHUNK_TICK_INTERVAL=${CHUNK_TICK_INTERVAL:-15}
     volumes:
@@ -28,7 +28,7 @@ services:
     environment:
       POSTGRES_DB: email_verifier
       POSTGRES_USER: verifier
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     command:
       - postgres
       - -c

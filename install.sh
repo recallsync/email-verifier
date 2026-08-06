@@ -17,6 +17,20 @@ HEALTH_TIMEOUT=120
 err() { printf 'Error: %s\n' "$*" >&2; }
 info() { printf '%s\n' "$*"; }
 
+# curl | bash pipes the script on stdin — redirect prompts to the terminal.
+open_tty() {
+  if [[ -t 0 ]]; then
+    return 0
+  fi
+  if [[ -r /dev/tty ]]; then
+    exec 0</dev/tty
+    return 0
+  fi
+  err "Interactive installer requires a terminal."
+  err "Try: curl -fsSL ${REPO_RAW%/deploy}/install.sh -o install.sh && bash install.sh"
+  exit 1
+}
+
 download() {
   local url=$1 dest=$2
   if command -v curl >/dev/null 2>&1; then
@@ -146,6 +160,7 @@ main() {
   info "Email Verifier — installer"
   info ""
 
+  open_tty
   check_prereqs
 
   local install_dir=""

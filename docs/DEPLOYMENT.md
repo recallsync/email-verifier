@@ -1,6 +1,24 @@
 # Deployment
 
-## Quick start (Docker Hub — no clone)
+## Quick start (installer)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/recallsync/email-verifier/main/install.sh | bash
+```
+
+The script will:
+1. Check Docker and Compose v2
+2. Create an install directory (default `./email-verifier`)
+3. Download compose files from GitHub
+4. Prompt for PostgreSQL password (Enter = random, with fallbacks if `openssl` is unavailable)
+5. Optionally configure ngrok (authtoken + reserved domain)
+6. Pull images and start the stack
+
+Open **http://localhost:5050**.
+
+---
+
+## Quick start (manual — no clone)
 
 ```bash
 mkdir email-verifier && cd email-verifier
@@ -80,7 +98,9 @@ Create `.env` from `.env.example`:
 | `GUNICORN_TIMEOUT` | no | `300` | Request timeout (seconds) |
 | `CHUNK_TICK_INTERVAL` | no | `15` | Seconds between processor ticks |
 | `MAX_UPLOAD_SIZE_MB` | no | `50` | CSV upload limit |
-| `PUBLIC_URL` | no | — | Base URL when exposed via ngrok |
+| `NGROK_AUTHTOKEN` | no | — | ngrok authtoken (required with ngrok compose) |
+| `NGROK_DOMAIN` | no | — | Reserved ngrok URL, e.g. `https://myapp.ngrok-free.app` — stable across restarts |
+| `PUBLIC_URL` | no | — | Same as `NGROK_DOMAIN` when set; for reference and future app use |
 
 ---
 
@@ -144,7 +164,24 @@ exec gunicorn \
 
 ## Network requirements
 
-The app container needs **outbound port 25 (SMTP)** to verify emails. Ensure your host/firewall allows this.
+The app container needs **outbound port 25 (SMTP)** to verify emails.
+
+### Local vs VPS
+
+| Environment | Port 25 | Notes |
+|---|---|---|
+| **Local machine** | Usually open | Home and office networks typically allow outbound SMTP. This is the simplest setup. |
+| **VPS / cloud** | Often blocked | AWS, GCP, Azure, and many budget VPS providers block outbound port 25 by default. Contact your host to request access if verification returns mostly Risky. |
+
+If port 25 is unavailable, SMTP checks cannot run — results will skew toward Risky regardless of list quality.
+
+### Concurrency on shared hosts
+
+Default concurrency is **10**. On a VPS or when seeing rate limits:
+
+- Start at **5–10** parallel checks
+- Avoid going above **15** unless you have confirmed headroom with your provider
+- Adjust in **Settings → Verification** inside the app
 
 | Direction | Port | Purpose |
 |---|---|---|
@@ -190,24 +227,31 @@ Database migrations run automatically on app boot. Existing lists and settings a
 
 ## External HTTPS via ngrok
 
-Use the optional override file (not a manual edit):
+1. Reserve a domain at [dashboard.ngrok.com/domains](https://dashboard.ngrok.com/domains) (free tier includes one static dev domain).
+2. Add to `.env`:
 
 ```bash
-# .env
 NGROK_AUTHTOKEN=your_token_here
-PUBLIC_URL=https://abc123.ngrok.io
+NGROK_DOMAIN=https://your-reserved-name.ngrok-free.app
+PUBLIC_URL=https://your-reserved-name.ngrok-free.app
+```
 
+3. Start with the ngrok override:
+
+```bash
 docker compose -f docker-compose.yml -f docker-compose.ngrok.yml up -d
 ```
 
+When `NGROK_DOMAIN` is set, the ngrok container uses `ngrok http app:5050 --url $NGROK_DOMAIN` so the URL stays the same after restarts. Without it, ngrok assigns a new random URL each time.
+
 Inspector UI: **http://localhost:4040**
 
-Public endpoints:
+Public endpoints (replace with your `NGROK_DOMAIN`):
 
 ```
-https://abc123.ngrok.io/verify-email
-https://abc123.ngrok.io/find-email
-https://abc123.ngrok.io/api/lists
+https://your-reserved-name.ngrok-free.app/verify-email
+https://your-reserved-name.ngrok-free.app/find-email
+https://your-reserved-name.ngrok-free.app/api/lists
 ```
 
 ### Security notes
@@ -274,12 +318,12 @@ cd frontend && npm install && npm run dev
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| All emails return Risky | Port 25 blocked by host/provider | Check outbound SMTP; many cloud providers block port 25 |
+| All emails return Risky | Port 25 blocked by host/provider | Local: check firewall. VPS: ask provider to enable outbound port 25; lower concurrency to 5–10 |
 | List stuck in processing | Container crashed mid-chunk | Wait 10 min for stale recovery, or restart app |
 | `database: disconnected` in /health | Postgres not ready or wrong credentials | Check compose logs, verify DATABASE_URL |
 | Upload fails with 413 | CSV exceeds max size | Increase MAX_UPLOAD_SIZE_MB or split file |
 | ngrok 502 | App not healthy | Check `docker compose logs app` |
-| Slow verification | Low concurrency or high timeout | Increase concurrency in settings (carefully) |
+| Slow verification | Low concurrency or high timeout | Increase concurrency in Settings (carefully); on VPS keep at 5–15 |
 
 ---
 

@@ -109,7 +109,7 @@ Legacy API docs ([API_DOCS.md](./API_DOCS.md), [DEPLOYMENT.md](./DEPLOYMENT.md))
 | **1** | List API (CRUD, upload, verify, pause, cancel, export) |
 | **2** | React + shadcn frontend (Lists, Tools, Settings) |
 | **3** | Multi-stage Docker build, Docker Hub publish, ngrok compose |
-| **4** | Polish — branding, honest-limits copy, README |
+| **4** | Polish — deployment notes in Settings, docs cleanup |
 | **5** (optional) | Tauri desktop launcher (`.exe`/`.app` → docker compose + WebView) |
 
 ---

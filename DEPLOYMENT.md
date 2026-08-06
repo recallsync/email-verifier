@@ -1,3 +1,5 @@
+> **Legacy doc.** Current deployment guide: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
 # 🚀 Production Deployment Guide
 
 ## Docker Deployment

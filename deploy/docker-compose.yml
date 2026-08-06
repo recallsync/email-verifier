@@ -1,6 +1,8 @@
 # Minimal install — no git clone required.
+# Recommended: curl -fsSL https://raw.githubusercontent.com/recallsync/email-verifier/main/install.sh | bash
+# Manual:
 # 1. mkdir email-verifier && cd email-verifier
-# 2. copy this file and .env.example into the directory
+# 2. copy this file, docker-compose.ngrok.yml (optional), and .env.example
 # 3. cp .env.example .env  (set POSTGRES_PASSWORD)
 # 4. docker compose pull && docker compose up -d
 # 5. open http://localhost:5050

@@ -25,6 +25,12 @@ Local-first email list verification. Upload CSV/XLSX, verify via SMTP on your ma
 ### Quick start
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/recallsync/email-verifier/main/install.sh | bash
+```
+
+Or manually:
+
+```bash
 mkdir email-verifier && cd email-verifier
 
 curl -fsSL -O https://raw.githubusercontent.com/recallsync/email-verifier/main/deploy/docker-compose.yml
@@ -48,7 +54,7 @@ Open **http://localhost:5050**
 ### Requirements
 
 - Docker Compose v2
-- Outbound port 25 (SMTP verification)
+- Outbound port 25 (SMTP verification) — usually open locally; many VPS providers block it by default
 - ~512 MB RAM minimum
 
 ### Links

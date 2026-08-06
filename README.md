@@ -6,7 +6,19 @@ Local-first email list verification. Upload a CSV or XLSX, verify every row via 
 
 ---
 
-## Quick start (Docker Hub)
+## Quick start (recommended)
+
+One command — downloads compose files, configures `.env`, and starts the app:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/recallsync/email-verifier/main/install.sh | bash
+```
+
+Open **http://localhost:5050**
+
+---
+
+## Quick start (manual)
 
 No git clone required.
 
@@ -72,6 +84,10 @@ Every row is preserved. Ambiguous SMTP results are **Risky**, not forced to Veri
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Engine + Compose v2
 - Outbound **port 25** (SMTP checks)
 
+**Local:** port 25 is usually available out of the box.
+
+**VPS / cloud:** many providers block outbound port 25 — request access from your host if verification returns mostly Risky. Lower concurrency (5–10) in Settings if you see rate limits.
+
 ---
 
 ## Development
@@ -107,10 +123,17 @@ See [`docs/DOCKER_HUB.md`](docs/DOCKER_HUB.md) for Hub page copy.
 
 ## Optional: ngrok (public HTTPS)
 
+Reserve a stable domain at [dashboard.ngrok.com/domains](https://dashboard.ngrok.com/domains), then add to `.env`:
+
 ```bash
-# Add NGROK_AUTHTOKEN to .env
+NGROK_AUTHTOKEN=your_token
+NGROK_DOMAIN=https://your-reserved-name.ngrok-free.app
+PUBLIC_URL=https://your-reserved-name.ngrok-free.app
+
 docker compose -f docker-compose.yml -f docker-compose.ngrok.yml up -d
 ```
+
+Without `NGROK_DOMAIN`, ngrok assigns a random URL on each restart. The installer prompts for both when you choose to enable ngrok.
 
 Inspector UI: **http://localhost:4040**
 
@@ -130,7 +153,7 @@ Inspector UI: **http://localhost:4040**
 
 | Issue | Fix |
 |---|---|
-| All emails **Risky** | Host may block outbound port 25 |
+| All emails **Risky** | Port 25 blocked — common on VPS; ask provider to enable it, or run locally |
 | UI not loading | Ensure you pulled `:latest` app tag, not just postgres |
 | List stuck processing | `docker compose restart app` or wait ~10 min for recovery |
 

@@ -360,6 +360,16 @@ Warning banner (shown when concurrency > 25):
 
 Save button persists via `PUT /api/settings`. Auto-save on change (debounced 500ms) is acceptable alternative.
 
+### Deployment
+
+Read-only info card (not persisted):
+
+| Topic | Copy |
+|---|---|
+| Local | Outbound port 25 usually open on home/office networks |
+| VPS / cloud | Many hosts block port 25 — ask provider to enable if results skew Risky |
+| Concurrency | Default 10; on VPS try 5–10, avoid above 15 without confirmed headroom |
+
 ---
 
 ## UX rules

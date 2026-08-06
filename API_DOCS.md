@@ -1,3 +1,5 @@
+> **Legacy doc.** Current API reference: [`docs/API.md`](docs/API.md).
+
 # 🔥 Robust Email Verifier & Finder API
 
 ## Base URL

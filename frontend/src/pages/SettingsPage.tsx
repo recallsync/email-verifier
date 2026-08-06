@@ -117,6 +117,29 @@ export function SettingsPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Deployment</CardTitle>
+          <CardDescription>Where you run the app affects verification results.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm text-muted-foreground">
+          <p>
+            <span className="font-medium text-foreground">Local machine.</span> Works when outbound
+            port 25 is open — typical on home or office networks.
+          </p>
+          <p>
+            <span className="font-medium text-foreground">VPS / cloud.</span> Many hosts block outbound
+            port 25 by default. If most results come back Risky, confirm port 25 is allowed or ask
+            your provider to enable it.
+          </p>
+          <p>
+            <span className="font-medium text-foreground">Concurrency.</span> Default 10 suits most
+            setups. On a VPS or strict networks, try 5–10 and keep concurrency at or below 15 unless
+            you know your provider tolerates higher volume.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Data</CardTitle>
         </CardHeader>
         <CardContent>

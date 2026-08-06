@@ -15,9 +15,15 @@ Same model as n8n, Uptime Kuma, Portainer.
 
 ## v1 distribution (current)
 
-### Option A — Docker Hub (recommended for end users)
+### Option A — Installer (recommended)
 
-No git clone. Copy [`deploy/docker-compose.yml`](../deploy/docker-compose.yml) and [`deploy/.env.example`](../deploy/.env.example), then:
+```bash
+curl -fsSL https://raw.githubusercontent.com/recallsync/email-verifier/main/install.sh | bash
+```
+
+### Option B — Docker Hub manual pull
+
+No git clone. Download [`deploy/docker-compose.yml`](../deploy/docker-compose.yml) and [`.env.example`](../deploy/.env.example), then:
 
 ```bash
 docker compose pull && docker compose up -d
@@ -25,7 +31,7 @@ docker compose pull && docker compose up -d
 
 Images: `envisiontechai/fusionsyncai-email-verifier:latest` + `:postgres-16`
 
-### Option B — Build from source
+### Option C — Build from source
 
 | Step | Action |
 |---|---|

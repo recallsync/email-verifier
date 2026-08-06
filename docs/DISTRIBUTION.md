@@ -15,10 +15,22 @@ Same model as n8n, Uptime Kuma, Portainer.
 
 ## v1 distribution (current)
 
+### Option A — Docker Hub (recommended for end users)
+
+No git clone. Copy [`deploy/docker-compose.yml`](../deploy/docker-compose.yml) and [`deploy/.env.example`](../deploy/.env.example), then:
+
+```bash
+docker compose pull && docker compose up -d
+```
+
+Images: `envisiontechai/fusionsyncai-email-verifier:latest` + `:postgres-16`
+
+### Option B — Build from source
+
 | Step | Action |
 |---|---|
 | 1 | Install Docker Desktop (Windows/Mac) or Docker Engine (Linux) |
-| 2 | `docker compose up -d` |
+| 2 | `git clone` + `docker compose up -d --build` |
 | 3 | Open browser at `localhost:5050` |
 
 The UI is a **React SPA** served as static files from the Flask container. No separate frontend service.

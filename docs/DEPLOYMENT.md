@@ -1,59 +1,55 @@
 # Deployment
 
-## Quick start
+## Quick start (Docker Hub — no clone)
+
+```bash
+mkdir email-verifier && cd email-verifier
+
+curl -fsSL -O https://raw.githubusercontent.com/envisiontechai/email-verifier/main/deploy/docker-compose.yml
+curl -fsSL -O https://raw.githubusercontent.com/envisiontechai/email-verifier/main/deploy/.env.example
+cp .env.example .env
+# Edit .env — set POSTGRES_PASSWORD
+
+docker compose pull
+docker compose up -d
+```
+
+Open **http://localhost:5050**.
+
+Images: `envisiontechai/fusionsyncai-email-verifier:latest` (app) and `:postgres-16` (database).
+
+---
+
+## Quick start (from source)
 
 ```bash
 git clone <repo-url>
 cd email-verifier
 cp .env.example .env
-docker compose up -d
+docker compose up -d --build
 ```
 
-Open `http://localhost:5050`.
+Pull pre-built images instead of building:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+Open **http://localhost:5050**.
 
 ---
 
 ## Docker Compose services
 
-```yaml
-services:
-  app:
-    build: .
-    ports:
-      - "5050:5050"
-    environment:
-      - DATABASE_URL=postgresql://verifier:${POSTGRES_PASSWORD}@postgres:5432/email_verifier
-    volumes:
-      - ./data:/app/data
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5050/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+Root `docker-compose.yml` defines two services with optional local `build` and published `image` tags:
 
-  postgres:
-    image: postgres:16
-    environment:
-      - POSTGRES_DB=email_verifier
-      - POSTGRES_USER=verifier
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    volumes:
-      - ./data/postgres:/var/lib/postgresql/data
-      - ./migrations/006_pg_cron_jobs.sql:/docker-entrypoint-initdb.d/006_pg_cron.sql
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U verifier -d email_verifier"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-```
+| Service | Image tag | Notes |
+|---|---|---|
+| `app` | `envisiontechai/fusionsyncai-email-verifier:latest` | Flask + React UI + processor |
+| `postgres` | `envisiontechai/fusionsyncai-email-verifier:postgres-16` | PostgreSQL 16 + pg_cron |
 
-Two services, one command. `./data` volume persists everything across restarts and image updates.
+Minimal pull-only bundle for end users: [`deploy/docker-compose.yml`](../deploy/docker-compose.yml) (no `build` keys).
 
 ---
 
@@ -194,32 +190,17 @@ Database migrations run automatically on app boot. Existing lists and settings a
 
 ## External HTTPS via ngrok
 
-Optional compose override for public API access.
-
-### docker-compose.override.yml
-
-```yaml
-services:
-  ngrok:
-    image: ngrok/ngrok:latest
-    command: http app:5050
-    environment:
-      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
-    ports:
-      - "4040:4040"
-    depends_on:
-      - app
-```
+Use the optional override file (not a manual edit):
 
 ```bash
 # .env
 NGROK_AUTHTOKEN=your_token_here
 PUBLIC_URL=https://abc123.ngrok.io
+
+docker compose -f docker-compose.yml -f docker-compose.ngrok.yml up -d
 ```
 
-```bash
-docker compose up -d
-```
+Inspector UI: **http://localhost:4040**
 
 Public endpoints:
 
@@ -240,37 +221,25 @@ https://abc123.ngrok.io/api/lists
 
 ## Docker Hub distribution
 
-### Image tags
+Repository: [`envisiontechai/fusionsyncai-email-verifier`](https://hub.docker.com/r/envisiontechai/fusionsyncai-email-verifier)
 
-```
-<org>/email-verifier:latest
-<org>/email-verifier:v1.0.0
-```
+| Tag | Service |
+|---|---|
+| `latest` | App |
+| `postgres-16` | PostgreSQL + pg_cron |
+| `v1.0.0` | App (semver, optional) |
+| `postgres-v1.0.0` | Postgres (semver, optional) |
 
-### Pull and run (published image)
-
-```bash
-mkdir email-verifier && cd email-verifier
-
-cat > .env <<EOF
-POSTGRES_PASSWORD=$(openssl rand -hex 16)
-EOF
-
-cat > docker-compose.yml <<EOF
-# paste compose config
-EOF
-
-docker compose up -d
-```
-
-### Build and push
+### Build and push (maintainers)
 
 ```bash
-docker build -t <org>/email-verifier:latest .
-docker push <org>/email-verifier:latest
-docker tag <org>/email-verifier:latest <org>/email-verifier:v1.0.0
-docker push <org>/email-verifier:v1.0.0
+docker login
+chmod +x scripts/publish.sh
+./scripts/publish.sh           # push :latest and :postgres-16
+./scripts/publish.sh v1.0.0    # also push version tags
 ```
+
+See [`DOCKER_HUB.md`](./DOCKER_HUB.md) for Hub page description text.
 
 ---
 

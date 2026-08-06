@@ -1,0 +1,10 @@
+# Production: pull pre-built images from Docker Hub (skip local build)
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+#        docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  app:
+    pull_policy: always
+
+  postgres:
+    pull_policy: always

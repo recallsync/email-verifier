@@ -12,6 +12,7 @@ Technical documentation for the local-first email verification app. Read these b
 | [API.md](./API.md) | REST endpoints, request/response shapes, SSE, legacy API |
 | [UI.md](./UI.md) | Screens, flows, Find Email UX, components, copy guidelines |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | Docker Compose, volumes, ngrok, environment variables |
+| [DOCKER_HUB.md](./DOCKER_HUB.md) | Docker Hub page copy and publish commands |
 | [DISTRIBUTION.md](./DISTRIBUTION.md) | Web app vs desktop launcher, Tauri roadmap |
 
 ## Product context

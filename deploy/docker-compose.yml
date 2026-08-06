@@ -1,21 +1,21 @@
-# Development: builds images locally
-# Production pull:  docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
-#                   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Minimal install — no git clone required.
+# 1. mkdir email-verifier && cd email-verifier
+# 2. copy this file and .env.example into the directory
+# 3. cp .env.example .env  (set POSTGRES_PASSWORD)
+# 4. docker compose pull && docker compose up -d
+# 5. open http://localhost:5050
 
 services:
   app:
-    build: .
-    image: ${DOCKER_IMAGE:-envisiontechai/fusionsyncai-email-verifier}:${APP_TAG:-latest}
+    image: envisiontechai/fusionsyncai-email-verifier:latest
     container_name: email-verifier
     ports:
       - "${APP_PORT:-5050}:5050"
     environment:
-      - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://verifier:${POSTGRES_PASSWORD:-changeme}@postgres:5432/email_verifier
-      - DATA_DIR=/app/data
-      - CHUNK_TICK_INTERVAL=${CHUNK_TICK_INTERVAL:-15}
-      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-4}
-      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-300}
+      PYTHONUNBUFFERED: "1"
+      DATABASE_URL: postgresql://verifier:${POSTGRES_PASSWORD:-changeme}@postgres:5432/email_verifier
+      DATA_DIR: /app/data
+      CHUNK_TICK_INTERVAL: ${CHUNK_TICK_INTERVAL:-15}
     volumes:
       - ./data:/app/data
     depends_on:
@@ -30,8 +30,7 @@ services:
       start_period: 40s
 
   postgres:
-    build: ./postgres
-    image: ${DOCKER_IMAGE:-envisiontechai/fusionsyncai-email-verifier}:${POSTGRES_TAG:-postgres-16}
+    image: envisiontechai/fusionsyncai-email-verifier:postgres-16
     container_name: email-verifier-db
     environment:
       POSTGRES_DB: email_verifier

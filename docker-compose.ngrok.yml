@@ -1,0 +1,17 @@
+# Optional HTTPS tunnel for external API access.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.ngrok.yml up -d
+# Requires NGROK_AUTHTOKEN in .env — https://dashboard.ngrok.com/get-started/your-authtoken
+
+services:
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: email-verifier-ngrok
+    command: http app:5050
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    ports:
+      - "4040:4040"
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped

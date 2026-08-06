@@ -21,6 +21,8 @@ Same model as n8n, Uptime Kuma, Portainer.
 curl -fsSL https://raw.githubusercontent.com/recallsync/email-verifier/main/install.sh | bash
 ```
 
+Installs compose files plus local `README.md` and `INSTRUCTIONS.md` (stop/start, `docker compose down`, wipe data, ngrok, updates).
+
 ### Option B — Docker Hub manual pull
 
 No git clone. Download [`deploy/docker-compose.yml`](../deploy/docker-compose.yml) and [`.env.example`](../deploy/.env.example), then:

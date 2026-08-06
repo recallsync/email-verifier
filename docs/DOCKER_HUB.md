@@ -44,6 +44,8 @@ docker compose up -d
 
 Open **http://localhost:5050**
 
+Local docs (`README.md`, `INSTRUCTIONS.md`) are placed in your install folder — covers stop/start, `docker compose down`, and removing data.
+
 ### Images
 
 | Tag | Service |

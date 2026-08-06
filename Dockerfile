@@ -1,4 +1,12 @@
-# Use official Python runtime as base image
+# Stage 1: Build frontend
+FROM node:20-alpine AS frontend
+WORKDIR /build
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm install
+COPY frontend/ ./
+RUN npm run build
+
+# Stage 2: Python app
 FROM python:3.13-slim
 
 WORKDIR /app
@@ -12,6 +20,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
+COPY --from=frontend /build/dist ./static
 
 RUN mkdir -p /app/data/uploads /app/data/logs \
     && chmod +x /app/entrypoint.sh

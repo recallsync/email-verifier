@@ -2,7 +2,7 @@
 
 Single-page application served at `localhost:5050`. Dark mode default. Dev-tool aesthetic (n8n, Uptime Kuma) — not consumer SaaS.
 
-Built with Alpine.js. Client-side routing. All API calls to `/api/*`.
+Built with **React + Vite + shadcn/ui + Tailwind**. React Router for navigation. All API calls to `/api/*`.
 
 ---
 
@@ -34,10 +34,9 @@ Persistent footer note about SMTP limitations. Calm tone, not a warning banner. 
 
 ### Theme
 
-- Default: dark (`#0f0f0f` background, `#1a1a2e` cards, `#e0e0e0` text)
-- Accent: `#6366f1` (indigo) for primary actions
+- Default: **dark** (shadcn/ui CSS variables, toggled via settings + header button)
 - Status colors: Verified `#22c55e`, Risky `#f59e0b`, Failed `#ef4444`
-- Light mode toggle in header — persisted via settings API
+- Light/dark mode persisted via `PUT /api/settings` (`theme` key)
 
 ---
 

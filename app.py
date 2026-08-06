@@ -1,9 +1,10 @@
 import csv
 import io
+import os
 import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, send_from_directory
 from flask_cors import CORS
 
 from db.connection import check_connection
@@ -13,9 +14,11 @@ from utils.email_utils import check_email
 from utils.email_permutations import generate_email_permutations
 from utils.verification_settings import VerificationSettings
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
 app.register_blueprint(api)
+
+STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 
 # Legacy in-memory job store (deprecated — use /api/lists)
 data = {}
@@ -315,6 +318,24 @@ def health():
         "service": "email-verifier",
         "database": "connected" if db_ok else "disconnected",
     }), code
+
+
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_spa(path):
+    """Serve React SPA — API routes registered above take precedence."""
+    if path.startswith("api/"):
+        return jsonify({"error": "not_found", "message": "Not found"}), 404
+    target = os.path.join(STATIC_DIR, path)
+    if path and os.path.isfile(target):
+        return send_from_directory(STATIC_DIR, path)
+    index = os.path.join(STATIC_DIR, "index.html")
+    if os.path.isfile(index):
+        return send_from_directory(STATIC_DIR, "index.html")
+    return jsonify({
+        "service": "email-verifier",
+        "message": "UI not built. Run: cd frontend && npm run build",
+    }), 503
 
 
 if __name__ == "__main__":

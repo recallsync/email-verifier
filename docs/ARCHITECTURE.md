@@ -25,18 +25,20 @@ A self-hosted email list verification app. Users run `docker compose up`, open `
 |---|---|---|
 | Database | PostgreSQL 16 | Row storage, settings, pg_cron |
 | Backend | Flask + gunicorn | Extend existing `app.py` |
-| Frontend | Alpine.js SPA | Static files served by Flask; built in Docker multi-stage |
+| Frontend | React + Vite + shadcn/ui | SPA built to static assets, served by Flask |
 | Progress | Server-Sent Events (SSE) | Client reconnects; server reads list counters from DB |
 | Orchestration | pg_cron + in-app tick | Maintenance via pg_cron; chunk loop every 15s in app container |
 | Packaging | Docker Compose | `app` + `postgres` services, one command |
 | External HTTPS | ngrok (optional) | Compose override for public API access |
+| Desktop launcher (post-v1) | Tauri (optional) | `.exe`/`.app` starts compose + opens WebView to localhost:5050 |
 
 ### Explicitly not used
 
 - SQLite (concurrency limits, no pg_cron)
 - Redis, Celery, RQ, pgboss (queue complexity unnecessary for one-list-at-a-time)
 - Separate worker container (v1 — can split later if needed)
-- React (image size and build complexity not justified)
+- Alpine.js (superseded — React + shadcn for UX quality)
+- Electron (Tauri preferred if desktop launcher is built — smaller binary)
 
 ---
 
@@ -201,15 +203,36 @@ When ngrok is enabled, route only public API paths. The chunk processor is inter
 
 ## Frontend architecture
 
-Single-page app (Alpine.js):
+Single-page app (**React 18 + Vite + TypeScript + shadcn/ui + Tailwind**):
 
-- Client-side routing via hash or path segments (`/`, `/lists/:id`, `/tools`, `/settings`)
-- Flask serves `static/index.html` + assets for all non-API routes
-- API calls to `/api/*`
-- SSE connection on list detail page for live progress
-- Dark mode default; theme persisted in settings
+- Client-side routing via React Router (`/`, `/lists/new`, `/lists/:id`, `/tools`, `/settings`)
+- Flask serves `static/index.html` + hashed assets for all non-API routes (SPA fallback)
+- API calls to `/api/*` and legacy tool endpoints
+- SSE via `EventSource` on list detail page for live progress
+- Dark mode default; theme persisted via settings API (shadcn theme tokens)
 
-Build: multi-stage Dockerfile runs `npm run build` (or esbuild) in build stage, copies `dist/` into final Python image.
+Build: multi-stage Dockerfile runs `npm ci && npm run build` in `frontend/`, copies `frontend/dist/` into `/app/static/`.
+
+### Why React + shadcn (not Alpine)
+
+- Polished component library (tables, tabs, dialogs, progress) matches n8n/Uptime Kuma quality bar
+- Scales with 5+ screens without template spaghetti
+- Static bundle size difference (~200–400KB) is negligible inside Docker
+- shadcn + Tailwind gives dark dev-tool aesthetic out of the box
+
+---
+
+## Distribution model
+
+This is a **local web app**, not a native desktop binary. Users run Docker, open a browser (or optional desktop launcher).
+
+| Method | v1 | Notes |
+|---|---|---|
+| `docker compose up` → browser | **Yes** | Primary distribution |
+| Tauri `.exe` / `.app` launcher | Post-v1 (Phase 5) | Starts compose, opens WebView to `localhost:5050` |
+| Native app without Docker | No | Would require bundling Python + Postgres — fragile |
+
+The optional Tauri launcher is a **thin orchestrator** around the same web UI. It does not replace Docker Desktop as a prerequisite on Windows/Mac.
 
 ---
 

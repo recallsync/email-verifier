@@ -68,8 +68,9 @@ Available in UI and via API (including through optional ngrok HTTPS tunnel).
 | Database | PostgreSQL 16 + pg_cron |
 | Processing | Cron-driven chunks, one list at a time, idempotent |
 | Queue | None — no Redis/Celery/RQ |
-| Frontend | Alpine.js SPA, dark mode, served by Flask |
+| Frontend | React + Vite + shadcn/ui SPA, dark mode, served by Flask |
 | Deploy | docker compose: app + postgres |
+| Desktop launcher | Tauri wrapper (post-v1, optional) |
 | External access | Optional ngrok override |
 
 Full details: [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
@@ -106,9 +107,10 @@ Legacy API docs ([API_DOCS.md](./API_DOCS.md), [DEPLOYMENT.md](./DEPLOYMENT.md))
 |---|---|
 | **0** | Postgres schema, migrations, `process_chunk()` + tick loop |
 | **1** | List API (CRUD, upload, verify, pause, cancel, export) |
-| **2** | Frontend SPA (Lists, Tools, Settings) |
-| **3** | Docker compose, multi-stage build, ngrok docs |
-| **4** | Polish — branding, honest-limits copy, README, Docker Hub |
+| **2** | React + shadcn frontend (Lists, Tools, Settings) |
+| **3** | Multi-stage Docker build, ngrok docs, Docker Hub |
+| **4** | Polish — branding, honest-limits copy, README |
+| **5** (optional) | Tauri desktop launcher (`.exe`/`.app` → docker compose + WebView) |
 
 ---
 

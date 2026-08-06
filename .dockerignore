@@ -25,9 +25,11 @@ __pycache__/
 *.md
 !README.md
 
-# Logs
+# Logs and local data
 *.log
 logs/
+data/
+.venv/
 
 # OS
 .DS_Store

@@ -1,19 +1,20 @@
-version: "3.8"
-
 services:
-  email-verifier:
+  app:
     build: .
     container_name: email-verifier
     ports:
       - "5050:5050"
     environment:
       - PYTHONUNBUFFERED=1
-    restart: unless-stopped
+      - DATABASE_URL=postgresql://verifier:${POSTGRES_PASSWORD}@postgres:5432/email_verifier
+      - DATA_DIR=/app/data
+      - CHUNK_TICK_INTERVAL=${CHUNK_TICK_INTERVAL:-15}
     volumes:
-      # Optional: Mount volume for logs or temp files
-      - ./logs:/app/logs
-    networks:
-      - email-verifier-network
+      - ./data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5050/health"]
       interval: 30s
@@ -21,6 +22,24 @@ services:
       retries: 3
       start_period: 40s
 
-networks:
-  email-verifier-network:
-    driver: bridge
+  postgres:
+    build: ./postgres
+    container_name: email-verifier-db
+    environment:
+      POSTGRES_DB: email_verifier
+      POSTGRES_USER: verifier
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_cron
+      - -c
+      - cron.database_name=email_verifier
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U verifier -d email_verifier"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

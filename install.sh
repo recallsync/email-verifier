@@ -198,6 +198,8 @@ main() {
   download "${REPO_RAW}/docker-compose.yml" docker-compose.yml
   download "${REPO_RAW}/docker-compose.ngrok.yml" docker-compose.ngrok.yml
   download "${REPO_RAW}/.env.example" .env.example
+  download "${REPO_RAW}/README.md" README.md
+  download "${REPO_RAW}/INSTRUCTIONS.md" INSTRUCTIONS.md
 
   if [[ "$update_only" -eq 1 ]]; then
     info "Pulling latest images..."
@@ -207,6 +209,7 @@ main() {
     info ""
     info "Update complete."
     info "  App: http://localhost:${APP_PORT:-5050}"
+    info "  Docs: $(pwd)/README.md · $(pwd)/INSTRUCTIONS.md"
     if uses_ngrok; then
       info "  Ngrok inspector: http://localhost:4040"
       local pub
@@ -295,6 +298,9 @@ main() {
       fi
     fi
   fi
+  info ""
+  info "Docs:    $(pwd)/README.md"
+  info "         $(pwd)/INSTRUCTIONS.md"
   info ""
   info "Commands (from this directory):"
   info "  docker compose logs -f app"
